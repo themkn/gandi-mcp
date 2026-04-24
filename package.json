@@ -1,0 +1,46 @@
+{
+  "name": "@themkn/gandi-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for Gandi LiveDNS — manage DNS records, domains, and zone snapshots from Claude Code or any MCP client.",
+  "keywords": ["mcp", "mcp-server", "model-context-protocol", "gandi", "dns", "livedns", "claude", "claude-code"],
+  "license": "MIT",
+  "author": "mkn <khoa@khoa.ch>",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "gandi-mcp": "dist/index.js"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "audit": "npm audit --audit-level=high",
+    "prepublishOnly": "pnpm build && pnpm test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/themkn/gandi-mcp.git"
+  },
+  "bugs": "https://github.com/themkn/gandi-mcp/issues",
+  "homepage": "https://github.com/themkn/gandi-mcp#readme",
+  "publishConfig": {
+    "access": "public"
+  }
+}
