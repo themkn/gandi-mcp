@@ -5,3 +5,10 @@ dist/
 .env
 .env.*
 docs/superpowers/
+docs/security/
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+serviceAccountKey.json

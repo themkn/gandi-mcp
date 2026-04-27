@@ -76,4 +76,18 @@ describe("writeLocalBackup", () => {
     await expect(writeLocalBackup("ex.com", sampleRecords, readonly)).rejects.toThrow();
     chmodSync(readonly, 0o700);
   });
+
+  it.each([
+    ["../etc/passwd"],
+    ["..\\foo"],
+    ["foo/bar"],
+    ["foo\\bar"],
+    [".."],
+    ["."],
+    ["evil\0.com"],
+  ])("rejects path-traversal-shaped domain %j", async (badDomain) => {
+    await expect(writeLocalBackup(badDomain, sampleRecords, dir)).rejects.toThrow(
+      /invalid domain/i,
+    );
+  });
 });

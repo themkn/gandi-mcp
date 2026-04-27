@@ -9,11 +9,25 @@ function expandTilde(p: string): string {
   return p;
 }
 
+function assertSafeDomain(domain: string): void {
+  if (
+    domain.includes("/") ||
+    domain.includes("\\") ||
+    domain.split(/[/\\]/).includes("..") ||
+    domain.includes("\0") ||
+    domain === "." ||
+    domain === ".."
+  ) {
+    throw new Error(`Refusing to write backup: invalid domain "${domain}"`);
+  }
+}
+
 export async function writeLocalBackup(
   domain: string,
   records: readonly DnsRecord[],
   dir: string,
 ): Promise<string> {
+  assertSafeDomain(domain);
   const resolvedDir = expandTilde(dir);
   await mkdir(resolvedDir, { recursive: true, mode: 0o700 });
 
