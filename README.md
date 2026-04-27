@@ -13,8 +13,22 @@ An [MCP server](https://modelcontextprotocol.io) for [Gandi LiveDNS](https://api
 
 ## Prerequisites
 
-- **A Gandi account** with a [Personal Access Token](https://admin.gandi.net/) (*Account → Security → Personal Access Tokens*) with LiveDNS access
+- **A Gandi account**
 - **Node.js 24+**
+
+### Get a Gandi Personal Access Token
+
+Gandi replaced legacy API keys with Personal Access Tokens (PATs). To create one for `gandi-mcp`:
+
+1. Sign in at [admin.gandi.net](https://admin.gandi.net/).
+2. Top-right menu → **User settings** → **Authentication options** (or visit [account.gandi.net/security](https://account.gandi.net/security)).
+3. Under **Personal Access Tokens**, click **Create a token**.
+4. Give it a name (e.g. `gandi-mcp`) and pick an expiration (max 1 year — Gandi will email you when it nears expiry).
+5. **Scope — which domains:** pick *Specific organizations* or *Specific domains* and select the ones you want this MCP to manage. Don't grant access to the whole account if you don't need it.
+6. **Permissions:** the only one you need for DNS is **"Manage domain technical configurations"** (covers LiveDNS read + write). Leave everything else (billing, organizations, transfers, etc.) unchecked.
+7. Click **Create**. **Copy the token immediately** — Gandi only shows it once. If you miss it, delete and create a new one.
+
+That token is your `apiKey` value in the config below.
 
 ## Install
 
