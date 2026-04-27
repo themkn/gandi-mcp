@@ -12,3 +12,5 @@ docs/security/
 *.pfx
 credentials.json
 serviceAccountKey.json
+CLAUDE.local.md
+*.local.md
