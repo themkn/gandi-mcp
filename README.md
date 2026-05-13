@@ -25,7 +25,7 @@ Gandi replaced legacy API keys with Personal Access Tokens (PATs). To create one
 3. Under **Personal Access Tokens**, click **Create a token**.
 4. Give it a name (e.g. `gandi-mcp`) and pick an expiration (max 1 year — Gandi will email you when it nears expiry).
 5. **Scope — which domains:** pick *Specific organizations* or *Specific domains* and select the ones you want this MCP to manage. Don't grant access to the whole account if you don't need it.
-6. **Permissions:** the only one you need for DNS is **"Manage domain technical configurations"** (covers LiveDNS read + write). Leave everything else (billing, organizations, transfers, etc.) unchecked.
+6. **Permissions:** enable **"Manage domain technical configurations"** (covers LiveDNS read + write). If any of your domains are owned by a Gandi *organization* (not your personal account), also enable **"View organization information"** so `list_domains` can discover them — otherwise it will silently fall back to your personal-org domains only. Everything else (billing, transfers, etc.) can stay unchecked.
 7. Click **Create**. **Copy the token immediately** — Gandi only shows it once. If you miss it, delete and create a new one.
 
 That token is your `apiKey` value in the config below.
@@ -95,7 +95,7 @@ By default Claude Code prompts on every tool call. To allow all `gandi-mcp` tool
 
 | Tool | What it does |
 |------|--------------|
-| `list_domains` | List all domains on your Gandi account |
+| `list_domains` | List LiveDNS-managed domains. Auto-discovers organizations the user belongs to and unions their domains with the personal-org list, deduped by FQDN. Pass `sharing_id` to scope to a single organization. |
 | `list_records` | List records for a domain, with optional `type` and `nameFilter` (anchored, case-insensitive glob — `*` = any, `?` = one) |
 | `get_record` | Fetch a single record by name + type |
 | `add_record` | Add a new record; auto-backup runs first |

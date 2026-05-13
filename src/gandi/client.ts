@@ -1,7 +1,7 @@
-import type { DnsRecord, Domain, RecordInput, Snapshot } from "./types.js";
+import type { DnsRecord, Domain, Organization, RecordInput, Snapshot } from "./types.js";
 import { GandiError } from "./errors.js";
 
-const BASE_URL = "https://api.gandi.net/v5/livedns";
+const BASE_URL = "https://api.gandi.net/v5";
 
 export class GandiClient {
   constructor(private readonly token: string) {}
@@ -36,22 +36,28 @@ export class GandiClient {
     return JSON.parse(text) as T;
   }
 
-  async listDomains(): Promise<Domain[]> {
-    return this.request<Domain[]>("/domains");
+  async listDomains(sharingId?: string): Promise<Domain[]> {
+    const params = new URLSearchParams({ per_page: "1000" });
+    if (sharingId) params.set("sharing_id", sharingId);
+    return this.request<Domain[]>(`/livedns/domains?${params.toString()}`);
+  }
+
+  async listOrganizations(): Promise<Organization[]> {
+    return this.request<Organization[]>("/organization/organizations");
   }
 
   async listRecords(domain: string): Promise<DnsRecord[]> {
-    return this.request<DnsRecord[]>(`/domains/${encodeURIComponent(domain)}/records`);
+    return this.request<DnsRecord[]>(`/livedns/domains/${encodeURIComponent(domain)}/records`);
   }
 
   async getRecord(domain: string, name: string, type: string): Promise<DnsRecord> {
     return this.request<DnsRecord>(
-      `/domains/${encodeURIComponent(domain)}/records/${encodeURIComponent(name)}/${encodeURIComponent(type)}`,
+      `/livedns/domains/${encodeURIComponent(domain)}/records/${encodeURIComponent(name)}/${encodeURIComponent(type)}`,
     );
   }
 
   async addRecord(domain: string, input: RecordInput): Promise<void> {
-    await this.request<void>(`/domains/${encodeURIComponent(domain)}/records`, {
+    await this.request<void>(`/livedns/domains/${encodeURIComponent(domain)}/records`, {
       method: "POST",
       body: JSON.stringify({
         rrset_name: input.name,
@@ -64,7 +70,7 @@ export class GandiClient {
 
   async updateRecord(domain: string, input: RecordInput): Promise<void> {
     await this.request<void>(
-      `/domains/${encodeURIComponent(domain)}/records/${encodeURIComponent(input.name)}/${encodeURIComponent(input.type)}`,
+      `/livedns/domains/${encodeURIComponent(domain)}/records/${encodeURIComponent(input.name)}/${encodeURIComponent(input.type)}`,
       {
         method: "PUT",
         body: JSON.stringify({
@@ -77,18 +83,21 @@ export class GandiClient {
 
   async deleteRecord(domain: string, name: string, type: string): Promise<void> {
     await this.request<void>(
-      `/domains/${encodeURIComponent(domain)}/records/${encodeURIComponent(name)}/${encodeURIComponent(type)}`,
+      `/livedns/domains/${encodeURIComponent(domain)}/records/${encodeURIComponent(name)}/${encodeURIComponent(type)}`,
       { method: "DELETE" },
     );
   }
 
   async listSnapshots(domain: string): Promise<Snapshot[]> {
-    return this.request<Snapshot[]>(`/domains/${encodeURIComponent(domain)}/snapshots`);
+    return this.request<Snapshot[]>(`/livedns/domains/${encodeURIComponent(domain)}/snapshots`);
   }
 
   async createSnapshot(domain: string, name?: string): Promise<Snapshot> {
     const init: RequestInit = { method: "POST" };
     if (name !== undefined) init.body = JSON.stringify({ name });
-    return this.request<Snapshot>(`/domains/${encodeURIComponent(domain)}/snapshots`, init);
+    return this.request<Snapshot>(
+      `/livedns/domains/${encodeURIComponent(domain)}/snapshots`,
+      init,
+    );
   }
 }

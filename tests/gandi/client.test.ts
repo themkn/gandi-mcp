@@ -99,6 +99,35 @@ describe("GandiClient", () => {
     expect(body === undefined || !(JSON.parse(body) as Record<string, unknown>).name).toBe(true);
   });
 
+  it("listDomains hits /livedns/domains with per_page", async () => {
+    const fetchMock = mockFetch(() => new Response(JSON.stringify([]), { status: 200 }));
+    const client = new GandiClient("K");
+    await client.listDomains();
+    const [url] = fetchMock.mock.calls[0]!;
+    expect(url).toContain("https://api.gandi.net/v5/livedns/domains");
+    expect(url).toContain("per_page=1000");
+    expect(url as string).not.toContain("sharing_id=");
+  });
+
+  it("listDomains appends sharing_id when provided", async () => {
+    const fetchMock = mockFetch(() => new Response(JSON.stringify([]), { status: 200 }));
+    const client = new GandiClient("K");
+    await client.listDomains("org-abc");
+    const [url] = fetchMock.mock.calls[0]!;
+    expect(url).toContain("sharing_id=org-abc");
+  });
+
+  it("listOrganizations GETs /organization/organizations", async () => {
+    const fetchMock = mockFetch(() =>
+      new Response(JSON.stringify([{ id: "org-1", name: "JLS" }]), { status: 200 }),
+    );
+    const client = new GandiClient("K");
+    const orgs = await client.listOrganizations();
+    const [url] = fetchMock.mock.calls[0]!;
+    expect(url).toBe("https://api.gandi.net/v5/organization/organizations");
+    expect(orgs).toEqual([{ id: "org-1", name: "JLS" }]);
+  });
+
   it("listSnapshots GETs /snapshots", async () => {
     const fetchMock = mockFetch(() =>
       new Response(JSON.stringify([{ id: "a", created_at: "x" }, { id: "b", created_at: "y" }]), {

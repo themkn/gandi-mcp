@@ -10,6 +10,11 @@ export interface Domain {
   readonly fqdn: string;
 }
 
+export interface Organization {
+  readonly id: string;
+  readonly name: string;
+}
+
 export interface Snapshot {
   readonly id: string;
   readonly name?: string;
