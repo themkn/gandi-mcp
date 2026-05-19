@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { GandiClient } from "../../src/gandi/client.js";
-import { GandiError } from "../../src/gandi/errors.js";
 
 function mockFetch(
   impl: (url: string, init?: RequestInit) => Response | Promise<Response>,
