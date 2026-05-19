@@ -1,6 +1,6 @@
 {
   "name": "@themkn/gandi-mcp",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "MCP server for Gandi LiveDNS — manage DNS records, domains, and zone snapshots from Claude Code or any MCP client.",
   "keywords": ["mcp", "mcp-server", "model-context-protocol", "gandi", "dns", "livedns", "claude", "claude-code"],
   "license": "MIT",
