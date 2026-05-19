@@ -1,4 +1,4 @@
-import { readFileSync, statSync } from "node:fs";
+import { closeSync, fstatSync, openSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { z } from "zod";
@@ -15,9 +15,9 @@ const ConfigSchema = z.object({
 export type Config = z.infer<typeof ConfigSchema>;
 
 export function loadConfig(path: string = DEFAULT_CONFIG_PATH): Config {
-  let stat;
+  let fd: number;
   try {
-    stat = statSync(path);
+    fd = openSync(path, "r");
   } catch (err: unknown) {
     if ((err as NodeJS.ErrnoException).code === "ENOENT") {
       throw new Error(
@@ -30,18 +30,23 @@ export function loadConfig(path: string = DEFAULT_CONFIG_PATH): Config {
     throw err;
   }
 
-  if ((stat.mode & 0o077) !== 0) {
-    const current = (stat.mode & 0o777).toString(8);
-    throw new Error(
-      `Config file ${path} has insecure permission ${current}. Run: chmod 600 ${path}`,
-    );
-  }
-
+  // Check perms and read from the same open fd so the inode can't be swapped between checks.
   let raw: string;
   try {
-    raw = readFileSync(path, "utf8");
-  } catch (err) {
-    throw new Error(`Unable to read ${path}: ${(err as Error).message}`);
+    const stat = fstatSync(fd);
+    if ((stat.mode & 0o077) !== 0) {
+      const current = (stat.mode & 0o777).toString(8);
+      throw new Error(
+        `Config file ${path} has insecure permission ${current}. Run: chmod 600 ${path}`,
+      );
+    }
+    try {
+      raw = readFileSync(fd, "utf8");
+    } catch (err) {
+      throw new Error(`Unable to read ${path}: ${(err as Error).message}`);
+    }
+  } finally {
+    closeSync(fd);
   }
 
   let parsed: unknown;

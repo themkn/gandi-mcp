@@ -7,7 +7,6 @@ const DomainRef = z.string().min(1).optional();
 const NameStr = z.string().min(1);
 const TypeStr = z.string().min(1);
 const ValuesArr = z.array(z.string().min(1)).min(1);
-const TtlNum = z.number().int().positive().optional();
 const TtlMutation = z.number().int().positive().default(300);
 
 const ListInput = z
