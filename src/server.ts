@@ -19,7 +19,9 @@ export interface ToolDefinition<Input> {
 
 export interface ToolContext {
   client: GandiClient;
-  config: Config;
+  defaultDomain: string | undefined;
+  autoBackup: boolean;
+  backupDir: string;
 }
 
 export interface ServerBootstrap {
@@ -31,10 +33,15 @@ export interface ServerBootstrap {
 export function buildServer(bootstrap: ServerBootstrap): Server {
   const { config, client, tools } = bootstrap;
   const byName = new Map(tools.map((t) => [t.name, t]));
-  const ctx: ToolContext = { client, config };
+  const ctx: ToolContext = {
+    client,
+    defaultDomain: config.defaultDomain,
+    autoBackup: config.autoBackup,
+    backupDir: config.backupDir,
+  };
 
   const mcp = new Server(
-    { name: "gandi-mcp", version: "0.1.0" },
+    { name: "gandi-mcp", version: "1.1.2" },
     { capabilities: { tools: {} } },
   );
 
@@ -63,11 +70,11 @@ export function buildServer(bootstrap: ServerBootstrap): Server {
       const result = await tool.handler(parsed.data, ctx);
       return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
     } catch (err) {
-      const text =
+      const raw =
         err instanceof GandiError
           ? err.toUserMessage()
           : `Unexpected error: ${(err as Error).message}`;
-      return { isError: true, content: [{ type: "text", text }] };
+      return { isError: true, content: [{ type: "text", text: client.scrub(raw) }] };
     }
   });
 

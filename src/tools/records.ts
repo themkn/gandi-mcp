@@ -26,7 +26,7 @@ const UpdateInput = z
 const DeleteInput = z.object({ domain: DomainRef, name: NameStr, type: TypeStr }).strict();
 
 function resolveDomain(input: { domain?: string }, ctx: ToolContext): string {
-  const d = input.domain ?? ctx.config.defaultDomain;
+  const d = input.domain ?? ctx.defaultDomain;
   if (!d) {
     throw new Error(
       "No domain provided and no `defaultDomain` in config. Pass `domain` explicitly or set one in ~/.gandi-mcp/config.json.",
@@ -44,9 +44,9 @@ function globToRegex(pattern: string): RegExp {
 }
 
 async function backupIfEnabled(ctx: ToolContext, domain: string): Promise<string | null> {
-  if (!ctx.config.autoBackup) return null;
+  if (!ctx.autoBackup) return null;
   const records = await ctx.client.listRecords(domain);
-  return writeLocalBackup(domain, records, ctx.config.backupDir);
+  return writeLocalBackup(domain, records, ctx.backupDir);
 }
 
 export const recordTools: ToolDefinition<unknown>[] = [

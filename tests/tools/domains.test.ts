@@ -12,7 +12,9 @@ function ctx(overrides: Partial<ToolContext["client"]> = {}): ToolContext {
       listOrganizations: vi.fn().mockResolvedValue([]),
       ...overrides,
     } as never,
-    config: { apiKey: "K", autoBackup: true, backupDir: "/tmp" } as never,
+    defaultDomain: undefined,
+    autoBackup: true,
+    backupDir: "/tmp",
   };
 }
 

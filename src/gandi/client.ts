@@ -6,6 +6,11 @@ const BASE_URL = "https://api.gandi.net/v5";
 export class GandiClient {
   constructor(private readonly token: string) {}
 
+  /** Defensive scrubber: strip the API token from arbitrary text. */
+  scrub(text: string): string {
+    return sanitize(text, this.token);
+  }
+
   private async request<T>(path: string, options: RequestInit = {}): Promise<T> {
     const response = await fetch(`${BASE_URL}${path}`, {
       ...options,
@@ -20,7 +25,7 @@ export class GandiClient {
       let detail = response.statusText;
       try {
         const body = (await response.json()) as { message?: string };
-        if (body.message) detail = body.message;
+        if (body.message) detail = sanitize(body.message, this.token);
       } catch {
         // body not JSON — keep statusText
       }
@@ -47,17 +52,17 @@ export class GandiClient {
   }
 
   async listRecords(domain: string): Promise<DnsRecord[]> {
-    return this.request<DnsRecord[]>(`/livedns/domains/${encodeURIComponent(domain)}/records`);
+    return this.request<DnsRecord[]>(`/livedns/domains/${encode(domain)}/records`);
   }
 
   async getRecord(domain: string, name: string, type: string): Promise<DnsRecord> {
     return this.request<DnsRecord>(
-      `/livedns/domains/${encodeURIComponent(domain)}/records/${encodeURIComponent(name)}/${encodeURIComponent(type)}`,
+      `/livedns/domains/${encode(domain)}/records/${encode(name)}/${encode(type)}`,
     );
   }
 
   async addRecord(domain: string, input: RecordInput): Promise<void> {
-    await this.request<void>(`/livedns/domains/${encodeURIComponent(domain)}/records`, {
+    await this.request<void>(`/livedns/domains/${encode(domain)}/records`, {
       method: "POST",
       body: JSON.stringify({
         rrset_name: input.name,
@@ -70,7 +75,7 @@ export class GandiClient {
 
   async updateRecord(domain: string, input: RecordInput): Promise<void> {
     await this.request<void>(
-      `/livedns/domains/${encodeURIComponent(domain)}/records/${encodeURIComponent(input.name)}/${encodeURIComponent(input.type)}`,
+      `/livedns/domains/${encode(domain)}/records/${encode(input.name)}/${encode(input.type)}`,
       {
         method: "PUT",
         body: JSON.stringify({
@@ -83,21 +88,34 @@ export class GandiClient {
 
   async deleteRecord(domain: string, name: string, type: string): Promise<void> {
     await this.request<void>(
-      `/livedns/domains/${encodeURIComponent(domain)}/records/${encodeURIComponent(name)}/${encodeURIComponent(type)}`,
+      `/livedns/domains/${encode(domain)}/records/${encode(name)}/${encode(type)}`,
       { method: "DELETE" },
     );
   }
 
   async listSnapshots(domain: string): Promise<Snapshot[]> {
-    return this.request<Snapshot[]>(`/livedns/domains/${encodeURIComponent(domain)}/snapshots`);
+    return this.request<Snapshot[]>(`/livedns/domains/${encode(domain)}/snapshots`);
   }
 
   async createSnapshot(domain: string, name?: string): Promise<Snapshot> {
     const init: RequestInit = { method: "POST" };
     if (name !== undefined) init.body = JSON.stringify({ name });
     return this.request<Snapshot>(
-      `/livedns/domains/${encodeURIComponent(domain)}/snapshots`,
+      `/livedns/domains/${encode(domain)}/snapshots`,
       init,
     );
   }
+}
+
+/** Defensive scrubber: strip the API token if it ever appears in a message. */
+function sanitize(message: string, token: string): string {
+  if (!token) return message;
+  return message.split(token).join("[redacted]");
+}
+
+function encode(segment: string): string {
+  if (!segment || segment.includes("/") || segment.includes("?") || segment.includes("#")) {
+    throw new Error(`Invalid path segment: ${JSON.stringify(segment)}`);
+  }
+  return encodeURIComponent(segment);
 }

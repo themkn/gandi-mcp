@@ -7,7 +7,9 @@ const findTool = (name: string) => snapshotTools.find((t) => t.name === name)!;
 function ctx(client: Partial<ToolContext["client"]>): ToolContext {
   return {
     client: { listSnapshots: vi.fn(), createSnapshot: vi.fn(), ...client } as never,
-    config: { apiKey: "K", defaultDomain: "ex.com", autoBackup: true, backupDir: "/tmp" } as never,
+    defaultDomain: "ex.com",
+    autoBackup: true,
+    backupDir: "/tmp",
   };
 }
 

@@ -7,7 +7,7 @@ const ListInput = z.object({ domain: DomainRef }).strict();
 const CreateInput = z.object({ domain: DomainRef, name: z.string().min(1).optional() }).strict();
 
 function resolveDomain(input: { domain?: string }, ctx: ToolContext): string {
-  const d = input.domain ?? ctx.config.defaultDomain;
+  const d = input.domain ?? ctx.defaultDomain;
   if (!d) {
     throw new Error(
       "No domain provided and no `defaultDomain` in config. Pass `domain` explicitly or set one in ~/.gandi-mcp/config.json.",

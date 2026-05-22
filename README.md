@@ -79,14 +79,56 @@ Add this to your `.mcp.json` (project-scoped) or `~/.config/claude/mcp.json` (gl
 }
 ```
 
-### Auto-approve tools
+### Recommended permissions
 
-By default Claude Code prompts on every tool call. To allow all `gandi-mcp` tools without prompting, add to `~/.claude/settings.json`:
+By default Claude Code asks for permission on every Gandi tool call. A blanket
+`mcp__gandi__*` allow works, but it also auto-approves irreversible live DNS
+changes like `delete_record` and `update_record`. A tiered policy keeps the
+inspection flow frictionless while making destructive zone edits explicit.
+
+Add this to your `~/.claude/settings.json`:
 
 ```json
 {
   "permissions": {
-    "allow": ["mcp__gandi__*"]
+    "allow": [
+      "mcp__gandi__list_domains",
+      "mcp__gandi__list_records",
+      "mcp__gandi__get_record",
+      "mcp__gandi__list_snapshots",
+      "mcp__gandi__create_snapshot",
+      "mcp__gandi__add_record"
+    ]
+  }
+}
+```
+
+What this does:
+
+- **Reads** (`list_domains`, `list_records`, `get_record`, `list_snapshots`) run
+  without prompting — they can't change anything.
+- **Additive writes** (`create_snapshot`, `add_record`) also run without
+  prompting. Snapshots are purely additive, and the server takes an automatic
+  local zone backup before every record mutation, so a stray `add_record` is
+  easy to recover from.
+- **Destructive writes** (`update_record`, `delete_record`) are *not* listed, so
+  Claude Code will prompt before each call. The auto-backup helps recover the
+  previous record values, but DNS caches still propagate — a bad change can
+  break a live site for as long as the old TTL lasts. These should be
+  deliberate.
+
+If you want a stricter setup, keep a wildcard `allow` and add a `deny` block for
+the destructive tools — `deny` blocks the call entirely (no prompt, no
+override):
+
+```json
+{
+  "permissions": {
+    "allow": ["mcp__gandi__*"],
+    "deny": [
+      "mcp__gandi__update_record",
+      "mcp__gandi__delete_record"
+    ]
   }
 }
 ```

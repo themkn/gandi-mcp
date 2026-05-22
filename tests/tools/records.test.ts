@@ -29,7 +29,7 @@ afterEach(() => {
 
 function makeCtx(
   client: Partial<ToolContext["client"]> = {},
-  cfg: Partial<ToolContext["config"]> = {},
+  cfg: Partial<Pick<ToolContext, "defaultDomain" | "autoBackup" | "backupDir">> = {},
 ): ToolContext {
   return {
     client: {
@@ -40,13 +40,10 @@ function makeCtx(
       deleteRecord: vi.fn().mockResolvedValue(undefined),
       ...client,
     } as never,
-    config: {
-      apiKey: "K",
-      defaultDomain: "ex.com",
-      autoBackup: true,
-      backupDir: dir,
-      ...cfg,
-    } as never,
+    defaultDomain: "ex.com",
+    autoBackup: true,
+    backupDir: dir,
+    ...cfg,
   };
 }
 
