@@ -1,0 +1,96 @@
+name: Release
+
+# Publishes to npm when a vX.Y.Z tag is pushed, using npm trusted publishing
+# (OIDC). No NPM_TOKEN secret is involved: the id-token permission below lets
+# the runner mint a short-lived OIDC token that npm exchanges for publish
+# rights. Provenance is attached automatically for public repos.
+#
+# The matching trusted publisher must be configured on npmjs.com for
+# @themkn/gandi-mcp with workflow filename "release.yml".
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write # required for OIDC trusted publishing
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        with:
+          version: 10
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false # never cache in a release build
+
+      - name: Verify tag matches package.json version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          pkg="$(node -p "require('./package.json').version")"
+          if [ "$tag" != "$pkg" ]; then
+            echo "::error::tag ${GITHUB_REF_NAME} does not match package.json version ${pkg}"
+            exit 1
+          fi
+          echo "releasing ${pkg}"
+
+      - name: Verify npm supports trusted publishing
+        run: |
+          npm_version="$(npm --version)"
+          echo "node $(node --version), npm ${npm_version}"
+          # OIDC trusted publishing needs npm >= 11.5.1
+          if [ "$(printf '%s\n11.5.1\n' "${npm_version}" | sort -V | head -1)" != "11.5.1" ]; then
+            echo "npm ${npm_version} is too old for trusted publishing, upgrading"
+            npm install -g npm@latest
+            npm --version
+          fi
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+
+      # prepublishOnly runs `pnpm build && pnpm test` again as a final gate.
+      - name: Publish
+        run: npm publish --access public
+
+  github-release:
+    name: Create GitHub release
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # required to create the release
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Build notes from CHANGELOG
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v ver="${version}" '
+            $0 ~ "^## \\[" ver "\\]" { flag = 1; next }
+            flag && /^## \[/ { exit }
+            flag { print }
+          ' CHANGELOG.md > notes.md
+          if [ ! -s notes.md ]; then
+            echo "no CHANGELOG section for ${version}, falling back to generated notes"
+            echo "GENERATE_NOTES=1" >> "${GITHUB_ENV}"
+          fi
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${GENERATE_NOTES:-0}" = "1" ]; then
+            gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME}" --generate-notes
+          else
+            gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME}" --notes-file notes.md
+          fi
