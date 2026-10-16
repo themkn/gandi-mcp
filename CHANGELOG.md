@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.6] - 2026-10-16
+
+### Security
+
+- Bump `@modelcontextprotocol/sdk` from 1.30.0 to 1.32.1, fixing the OAuth client sending credentials to an authorization server chosen by the MCP server (#39, #41)
+- Refresh transitive dependencies to patched versions: `proxy-addr` 2.0.7 to 2.0.8 (IP spoofing via IPv4-mapped IPv6 trust subnet), `fast-uri` 3.1.5 to 3.1.8 (SSRF and host confusion via hostname normalization), `qs` 6.15.3 to 6.16.0 (DoS via attacker-controlled `isBuffer`, array-limit bypass), `ip-address` 10.4.0 to 10.7.4 (SSRF and trust-boundary bypass in subnet checks), `hono` 4.12.34 to 4.13.13 (jsx XSS, `parseBody()` memory exhaustion, `toSSG()` path traversal), `nanoid` to 3.3.20, `source-map-js` 1.2.1 to 1.2.2 (event-loop DoS)
+- Bump `vitest` and `@vitest/mocker` from 4.1.10 to 4.1.11, fixing path traversal via redirect mock (#37)
+
+### Changed
+
+- Bump `zod` from 4.4.3 to 4.6.7 (#39)
+- Bump `@types/node` from 26.1.2 to 26.6.5 (#36)
+- Bump `vite` from 8.2.0 to 8.3.4 (#36)
+- Bump GitHub Actions CI dependencies (#40)
+- Publish to npm via OIDC trusted publishing on tag push; releases now carry npm provenance
+
+### Fixed
+
+- Remove the obsolete `hono` entry from `pnpm.overrides`. Dependabot regenerates the lockfile without the overrides section, which made every dependency PR fail `--frozen-lockfile` installs in CI. `hono` now resolves to 4.13.x on its own.
+
 ## [1.1.5] - 2026-08-19
 
 ### Changed
