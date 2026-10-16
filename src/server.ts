@@ -9,6 +9,7 @@ import { z, type ZodTypeAny } from "zod";
 import { GandiClient } from "./gandi/client.js";
 import { GandiError } from "./gandi/errors.js";
 import type { Config } from "./config.js";
+import { PACKAGE_VERSION } from "./version.js";
 
 export interface ToolDefinition<Input> {
   name: string;
@@ -41,7 +42,7 @@ export function buildServer(bootstrap: ServerBootstrap): Server {
   };
 
   const mcp = new Server(
-    { name: "gandi-mcp", version: "1.1.2" },
+    { name: "gandi-mcp", version: PACKAGE_VERSION },
     { capabilities: { tools: {} } },
   );
 
