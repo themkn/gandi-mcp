@@ -56,10 +56,5 @@
   "homepage": "https://github.com/themkn/gandi-mcp#readme",
   "publishConfig": {
     "access": "public"
-  },
-  "pnpm": {
-    "overrides": {
-      "hono": ">=4.12.25"
-    }
   }
 }
