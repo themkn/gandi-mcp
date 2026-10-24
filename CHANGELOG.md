@@ -5,11 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.1.7] - 2026-10-24
 
 ### Fixed
 
 - Report the real package version in the MCP `serverInfo` handshake. It was hard-coded to 1.1.2 in `server.ts` and had drifted from `package.json`; it is now read from `package.json` at startup.
+
+### Security
+
+- Require Node.js 24.22.1 or newer for local development (`.tool-versions`) and recommend it in the README. Earlier Node 24.x builds still trust the eight compromised eMudhra intermediate CA certificates (October 2026), which lets an attacker forge the TLS certificate of `api.gandi.net` for the bundled `fetch` client. Node 24.22.1 ships the NSS 3.131.1 root store that rejects them. No code change was needed; the fix is in the runtime.
+
+### Changed
+
+- Bump `vitest` from 4.1.11 to 5.0.5 (#47)
+- Bump `github/codeql-action` from 4.38.3 to 4.39.0 (#48)
 
 ## [1.1.6] - 2026-10-16
 

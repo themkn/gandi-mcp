@@ -14,7 +14,7 @@ An [MCP server](https://modelcontextprotocol.io) for [Gandi LiveDNS](https://api
 ## Prerequisites
 
 - **A Gandi account**
-- **Node.js 24+**
+- **Node.js 24.22.1 or newer** (earlier 24.x builds still trust the compromised eMudhra CA certificates)
 
 ### Get a Gandi Personal Access Token
 
